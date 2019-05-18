@@ -53,14 +53,44 @@ defmodule VacuumCleaner do
       %VacuumCleaner{x: 5, y: 3, direction: :east}
   """
   def move(vc = %VacuumCleaner{direction: :north}, room),
-    do: if(vc.y < room.y, do: move(vc), else: vc)
+    do: if(vc.y < room.y - 1, do: move(vc), else: vc)
 
   def move(vc = %VacuumCleaner{direction: :east}, room),
-    do: if(vc.x < room.x, do: move(vc), else: vc)
+    do: if(vc.x < room.x - 1, do: move(vc), else: vc)
 
   def move(vc = %VacuumCleaner{direction: :south}, _room),
     do: if(vc.y > 0, do: move(vc), else: vc)
 
   def move(vc = %VacuumCleaner{direction: :west}, _room),
     do: if(vc.x > 0, do: move(vc), else: vc)
+
+  @doc """
+  Giving vacuum cleaner set of instructions, initial state and room to execute.
+
+  ## Examples
+
+      iex> room = %Room{x: 6, y: 6}
+      iex> vc = %VacuumCleaner{x: 1, y: 2, direction: :north}
+      iex> instructions = [:left, :move, :left, :move, :left, :move, :left, :move, :move]
+      iex> instructions |> VacuumCleaner.execute(vc, room)
+      %VacuumCleaner{x: 1, y: 3, direction: :north}
+
+      iex> room = %Room{x: 6, y: 6}
+      iex> vc = %VacuumCleaner{x: 3, y: 5, direction: :north}
+      iex> instructions = [:move, :left, :move] # first move does not move because it hits the wall
+      iex> instructions |> VacuumCleaner.execute(vc, room)
+      %VacuumCleaner{x: 2, y: 5, direction: :west}
+  """
+  def execute(instructions, initial_state, room) do
+    instructions
+    |> Enum.reduce(
+      initial_state,
+      fn instruction, vc ->
+        case instruction do
+          :move -> vc |> move(room)
+          direction -> vc |> turn(direction)
+        end
+      end
+    )
+  end
 end
